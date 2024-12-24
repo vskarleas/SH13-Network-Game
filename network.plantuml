@@ -1,0 +1,35 @@
+@startuml
+actor Client1
+actor Client2
+actor Client3
+actor Client4
+participant Server
+
+Client1 -> Server: connect
+Server -> Client1: ack
+note right of Server: Update: Add Client1 to player list
+Client2 -> Server: connect
+Server -> Client2: ack
+note right of Server: Update: Add Client2 to player list
+Client3 -> Server: connect
+Server -> Client3: ack
+note right of Server: Update: Add Client3 to player list
+Client4 -> Server: connect
+Server -> Client4: ack
+note right of Server: Update: Add Client4 to player list
+
+loop Player Turns
+    ClientX -> Server: guess(object)
+    note right of Server: Check matrix for validity
+    Server -> ClientX: validate(guess)
+    alt Guess Correct
+        note right of Server: Update matrix with correct guess
+        Server -> All: broadcast(correct guess)
+    else Guess Incorrect
+        note right of Server: Matrix unchanged
+        Server -> ClientX: reject(guess)
+    end
+end
+
+Server -> All: update(game state)
+@enduml

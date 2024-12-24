@@ -1,0 +1,54 @@
+@startuml
+participant "Client 1" as C1
+participant "Client 2" as C2
+participant "Client 3" as C3
+participant "Client 4" as C4
+participant "Server" as S
+
+note over S: Server maintains the shared matrix state
+
+C1 -> S: Send guess
+alt Guess Valid
+    S -> S: Update matrix
+    S -> C1: Correct guess
+    S -> C2: Broadcast correct guess
+    S -> C3: Broadcast correct guess
+    S -> C4: Broadcast correct guess
+else Guess Invalid
+    S -> C1: Invalid guess
+end
+
+C2 -> S: Send guess
+alt Guess Valid
+    S -> S: Update matrix
+    S -> C2: Correct guess
+    S -> C1: Broadcast correct guess
+    S -> C3: Broadcast correct guess
+    S -> C4: Broadcast correct guess
+else Guess Invalid
+    S -> C2: Invalid guess
+end
+
+C3 -> S: Send guess
+alt Guess Valid
+    S -> S: Update matrix
+    S -> C3: Correct guess
+    S -> C1: Broadcast correct guess
+    S -> C2: Broadcast correct guess
+    S -> C4: Broadcast correct guess
+else Guess Invalid
+    S -> C3: Invalid guess
+end
+
+C4 -> S: Send guess
+alt Guess Valid
+    S -> S: Update matrix
+    S -> C4: Correct guess
+    S -> C1: Broadcast correct guess
+    S -> C2: Broadcast correct guess
+    S -> C3: Broadcast correct guess
+else Guess Invalid
+    S -> C4: Invalid guess
+end
+
+@enduml
