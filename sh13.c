@@ -28,6 +28,10 @@ int tableCartes[4][8];
 int b[3];
 int goEnabled;
 int connectEnabled;
+int victoryEnabled;
+int defeatEnabled;
+
+int liste_joueurs_elimines[4] = {0, 0, 0, 0};
 
 char *nbobjets[] = {"5", "5", "5", "5", "4", "3", "3", "3"};
 char *nbnoms[] = {"Sebastian Moran", "irene Adler", "inspector Lestrade",
@@ -157,7 +161,7 @@ int main(int argc, char **argv)
 
 	SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0); // renderer: window handle to renderer object for rendering purposes only. It's like a double buffer on which when we write on the one buffer, we read from the other buffer
 
-	SDL_Surface *deck[13], *objet[8], *gobutton, *connectbutton;
+	SDL_Surface *deck[13], *objet[8], *gobutton, *connectbutton, *victory, *defeat, *defeated;
 
 	deck[0] = IMG_Load("SH13_0.png");
 	deck[1] = IMG_Load("SH13_1.png");
@@ -184,6 +188,9 @@ int main(int argc, char **argv)
 
 	gobutton = IMG_Load("gobutton.png");
 	connectbutton = IMG_Load("connectbutton.png");
+	victory = IMG_Load("victory.png");
+	defeat = IMG_Load("defeat.png");
+	defeated = IMG_Load("defeated.png");
 
 	strcpy(gNames[0], "-");
 	strcpy(gNames[1], "-");
@@ -208,7 +215,7 @@ int main(int argc, char **argv)
 	goEnabled = 0;
 	connectEnabled = 1;
 
-	SDL_Texture *texture_deck[13], *texture_gobutton, *texture_connectbutton, *texture_objet[8]; // Pour sdl, une image est une surface
+	SDL_Texture *texture_deck[13], *texture_gobutton, *texture_connectbutton, *texture_victory, *texture_defeat, *texture_defeated, *texture_objet[8]; // Pour sdl, une image est une surface
 
 	for (i = 0; i < 13; i++)
 		texture_deck[i] = SDL_CreateTextureFromSurface(renderer, deck[i]);
@@ -217,6 +224,9 @@ int main(int argc, char **argv)
 
 	texture_gobutton = SDL_CreateTextureFromSurface(renderer, gobutton);
 	texture_connectbutton = SDL_CreateTextureFromSurface(renderer, connectbutton);
+	texture_victory = SDL_CreateTextureFromSurface(renderer, victory);
+	texture_defeat = SDL_CreateTextureFromSurface(renderer, defeat);
+	texture_defeated = SDL_CreateTextureFromSurface(renderer, defeated);
 
 	TTF_Font *Sans = TTF_OpenFont("sans.ttf", 15); // change the font
 	printf("Sans=%p\n", Sans);
@@ -276,24 +286,19 @@ int main(int argc, char **argv)
 					printf("go! joueur=%d objet=%d guilt=%d\n", joueurSel, objetSel, guiltSel);
 					if (guiltSel != -1)
 					{
-						sprintf(sendBuffer, "G %d %d", gId, guiltSel);
+						sprintf(sendBuffer,"G %d %d",gId, guiltSel);
+						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);	//On envoie le message au serveur
 
-						// CODE ADDED
-						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
 					}
 					else if ((objetSel != -1) && (joueurSel == -1))
 					{
-						sprintf(sendBuffer, "O %d %d", gId, objetSel);
-
-						// CODE ADDED
-						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
+						sprintf(sendBuffer,"O %d %d",gId, objetSel);
+						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);	//On envoie le message au serveur
 					}
 					else if ((objetSel != -1) && (joueurSel != -1))
 					{
-						sprintf(sendBuffer, "S %d %d %d", gId, joueurSel, objetSel);
-
-						// CODE ADDED
-						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
+						sprintf(sendBuffer,"S %d %d %d",gId, joueurSel,objetSel);
+						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);	//On envoie le message au serveur
 
 					}
 				}
@@ -317,57 +322,72 @@ int main(int argc, char **argv)
 			{
 			// Message 'I' : le joueur recoit son Id
 			case 'I':
-				sscanf(gbuffer, "I_%d", &gId);
-
-				// CODE ADDED
+				sscanf(gbuffer, "I %d", &gId);
 				printf("Received Player ID: %d\n", gId);
-
 				break;
+
 			// Message 'L' : le joueur recoit la liste des joueurs
 			case 'L':
-
-				// CODE ADDED
-				sscanf(gbuffer, "L_%s %s %s %s", gNames[0], gNames[1], gNames[2], gNames[3]);
+				sscanf(gbuffer, "L %s %s %s %s", gNames[0], gNames[1], gNames[2], gNames[3]);
 				printf("Updated Player List: %s, %s, %s, %s\n", gNames[0], gNames[1], gNames[2], gNames[3]);
-				
-
 				break;
+
 			// Message 'D' : le joueur recoit ses trois cartes
 			case 'D':
-
-				// CODE ADDED
-				sscanf(gbuffer, "D_%d_%d_%d", &b[0], &b[1], &b[2]);
+				sscanf(gbuffer, "D %d %d %d", &b[0], &b[1], &b[2]);
 				printf("Received Cards: %d, %d, %d\n", b[0], b[1], b[2]);
-
 				break;
+
 			// Message 'M' : le joueur recoit le n° du joueur courant
 			// Cela permet d'affecter goEnabled pour autoriser l'affichage du bouton go
 			case 'M':
-				
-				// CODE ADDED
-				sscanf(gbuffer, "M_%d", &id);
-				if (id == gId)
+			{
+				int joueursM;
+				sscanf(gbuffer, "M %d", &joueursM);
+				if (joueursM == gId)
+				{
 					goEnabled = 1;
+				}
 				else
+				{
 					goEnabled = 0;
 
-				printf("Current Player ID: %d\n", id);
+					if (joueursM == 4)
+					{
+						defeatEnabled = 1;
+					}
+					else if (joueursM == 5)
+					{
+						victoryEnabled = 1;
+					}
+				}
+			}
+			break;
 
-				//pritf for goEnabled
-				printf("goEnabled: %d\n", goEnabled);
-
-				break;
 			// Message 'V' : le joueur recoit une valeur de tableCartes
 			case 'V':
-				// CODE ADDED
-				sscanf(gbuffer, "V_%d_%d_%d", &i, &j, &tableCartes[i][j]);
+			{
+				int joueurV;
+				int valeur;
+				int symbole;
+				sscanf(gbuffer, "V %d %d %d", &joueurV, &symbole, &valeur);
 
-				// Maybe we should use &id like:
-				// sscanf(gbuffer, "V_%d_%d_%d", &i, &j,  &id);
 				// tableCartes[i][j] = id;
+				if (tableCartes[joueurV][symbole] == -1)
+				{
+					tableCartes[joueurV][symbole] = valeur;
+				}
 
-				printf("Received Table Card: %d, %d, %d\n", i, j, tableCartes[i][j]); // or printf("Received Table Card: %d, %d, %d\n", i, j, id);
+				else if (tableCartes[joueurV][symbole] == 100)
+				{
+					tableCartes[joueurV][symbole] = valeur;
+				}
+			}
+			break;
 
+			// Message 'P' : le joueur recoit une valeur du tableau des joueurs perdants
+			case 'P':
+				sscanf(gbuffer, "P %d %d %d %d", &liste_joueurs_elimines[0], &liste_joueurs_elimines[1], &liste_joueurs_elimines[2], &liste_joueurs_elimines[3]);
 				break;
 			}
 			synchro = 0;
@@ -686,6 +706,43 @@ int main(int argc, char **argv)
 		{
 			SDL_Rect dstrect = {0, 0, 200, 50};
 			SDL_RenderCopy(renderer, texture_connectbutton, NULL, &dstrect);
+		}
+
+		if (victoryEnabled == 1)
+		{
+			SDL_Rect dstrect = {275, 400, 536, 207};
+			SDL_RenderCopy(renderer, texture_victory, NULL, &dstrect);
+		}
+
+		if (defeatEnabled == 1)
+		{
+			SDL_Rect dstrect = {275, 400, 536, 269};
+			SDL_RenderCopy(renderer, texture_defeat, NULL, &dstrect);
+		}
+
+		// Eliminated players UI. Check server.c for more details
+		if (liste_joueurs_elimines[0] == 1)
+		{
+			SDL_Rect dstrect = {690, 95, 45, 45};
+			SDL_RenderCopy(renderer, texture_defeated, NULL, &dstrect);
+		}
+
+		if (liste_joueurs_elimines[1] == 1)
+		{
+			SDL_Rect dstrect = {690, 155, 45, 45};
+			SDL_RenderCopy(renderer, texture_defeated, NULL, &dstrect);
+		}
+
+		if (liste_joueurs_elimines[2] == 1)
+		{
+			SDL_Rect dstrect = {690, 215, 45, 45};
+			SDL_RenderCopy(renderer, texture_defeated, NULL, &dstrect);
+		}
+
+		if (liste_joueurs_elimines[3] == 1)
+		{
+			SDL_Rect dstrect = {690, 275, 45, 45};
+			SDL_RenderCopy(renderer, texture_defeated, NULL, &dstrect);
 		}
 
 		// SDL_SetRenderDrawColor(renderer, 255, 0, 0, SDL_ALPHA_OPAQUE);
