@@ -98,7 +98,7 @@ void *fn_serveur_tcp(void *arg)
 
 void sendMessageToServer(char *ipAddress, int portno, char *mess)
 {
-	int sockfd, n;
+	int sockfd;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 	char sendbuffer[256];
@@ -113,9 +113,12 @@ void sendMessageToServer(char *ipAddress, int portno, char *mess)
 	}
 	bzero((char *)&serv_addr, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
-	bcopy((char *)server->h_addr,
-		  (char *)&serv_addr.sin_addr.s_addr,
-		  server->h_length);
+	// bcopy((char *)server->h_addr,
+	// 	  (char *)&serv_addr.sin_addr.s_addr,
+	// 	  server->h_length);
+
+	memcpy((char *)&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length); // updated bcopy version which was deprecated above
+
 	serv_addr.sin_port = htons(portno);
 	if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
@@ -124,7 +127,7 @@ void sendMessageToServer(char *ipAddress, int portno, char *mess)
 	}
 
 	sprintf(sendbuffer, "%s\n", mess);
-	n = write(sockfd, sendbuffer, strlen(sendbuffer));
+	write(sockfd, sendbuffer, strlen(sendbuffer));
 
 	close(sockfd);
 }
@@ -147,15 +150,16 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 
-	strcpy(gServerIpAddress, argv[1]);
-	gServerPort = atoi(argv[2]);
-	strcpy(gClientIpAddress, argv[3]);
-	gClientPort = atoi(argv[4]);
-	strcpy(gName, argv[5]);
+	strcpy(gServerIpAddress, argv[1]); // Copy of server ip tp gServerIpAddress
+	gServerPort = atoi(argv[2]);	   // Definig the port of the server at gServerPort
+	strcpy(gClientIpAddress, argv[3]); // Copy of client ip to gClientIpAddress
+	gClientPort = atoi(argv[4]);	   // Defining the port of the client at gClientPort
+	strcpy(gName, argv[5]);			   // Copy of the player name to gName
 
 	SDL_Init(SDL_INIT_VIDEO);
 	TTF_Init();
 
+	// We create an SDL window
 	SDL_Window *window = SDL_CreateWindow("SDL2 SH13",
 										  SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 1024, 768, 0);
 
@@ -163,49 +167,51 @@ int main(int argc, char **argv)
 
 	SDL_Surface *deck[13], *objet[8], *gobutton, *connectbutton, *victory, *defeat, *defeated;
 
-	deck[0] = IMG_Load("SH13_0.png");
-	deck[1] = IMG_Load("SH13_1.png");
-	deck[2] = IMG_Load("SH13_2.png");
-	deck[3] = IMG_Load("SH13_3.png");
-	deck[4] = IMG_Load("SH13_4.png");
-	deck[5] = IMG_Load("SH13_5.png");
-	deck[6] = IMG_Load("SH13_6.png");
-	deck[7] = IMG_Load("SH13_7.png");
-	deck[8] = IMG_Load("SH13_8.png");
-	deck[9] = IMG_Load("SH13_9.png");
-	deck[10] = IMG_Load("SH13_10.png");
-	deck[11] = IMG_Load("SH13_11.png");
-	deck[12] = IMG_Load("SH13_12.png");
+	deck[0] = IMG_Load("ui/cards/SH13_0.png");
+	deck[1] = IMG_Load("ui/cards/SH13_1.png");
+	deck[2] = IMG_Load("ui/cards/SH13_2.png");
+	deck[3] = IMG_Load("ui/cards/SH13_3.png");
+	deck[4] = IMG_Load("ui/cards/SH13_4.png");
+	deck[5] = IMG_Load("ui/cards/SH13_5.png");
+	deck[6] = IMG_Load("ui/cards/SH13_6.png");
+	deck[7] = IMG_Load("ui/cards/SH13_7.png");
+	deck[8] = IMG_Load("ui/cards/SH13_8.png");
+	deck[9] = IMG_Load("ui/cards/SH13_9.png");
+	deck[10] = IMG_Load("ui/cards/SH13_10.png");
+	deck[11] = IMG_Load("ui/cards/SH13_11.png");
+	deck[12] = IMG_Load("ui/cards/SH13_12.png");
 
-	objet[0] = IMG_Load("SH13_pipe_120x120.png");
-	objet[1] = IMG_Load("SH13_ampoule_120x120.png");
-	objet[2] = IMG_Load("SH13_poing_120x120.png");
-	objet[3] = IMG_Load("SH13_couronne_120x120.png");
-	objet[4] = IMG_Load("SH13_carnet_120x120.png");
-	objet[5] = IMG_Load("SH13_collier_120x120.png");
-	objet[6] = IMG_Load("SH13_oeil_120x120.png");
-	objet[7] = IMG_Load("SH13_crane_120x120.png");
+	objet[0] = IMG_Load("ui/objects/SH13_pipe_120x120.png");
+	objet[1] = IMG_Load("ui/objects/SH13_ampoule_120x120.png");
+	objet[2] = IMG_Load("ui/objects/SH13_poing_120x120.png");
+	objet[3] = IMG_Load("ui/objects/SH13_couronne_120x120.png");
+	objet[4] = IMG_Load("ui/objects/SH13_carnet_120x120.png");
+	objet[5] = IMG_Load("ui/objects/SH13_collier_120x120.png");
+	objet[6] = IMG_Load("ui/objects/SH13_oeil_120x120.png");
+	objet[7] = IMG_Load("ui/objects/SH13_crane_120x120.png");
 
-	gobutton = IMG_Load("gobutton.png");
-	connectbutton = IMG_Load("connectbutton.png");
-	victory = IMG_Load("victory.png");
-	defeat = IMG_Load("defeat.png");
-	defeated = IMG_Load("defeated.png");
+	gobutton = IMG_Load("ui/buttons/gobutton.png");
+	connectbutton = IMG_Load("ui/buttons/connectbutton.png");
+
+	// Extra UI elements for final stage of the game
+	victory = IMG_Load("ui/stages/victory.png");
+	defeat = IMG_Load("ui/stages/defeat.png");
+	defeated = IMG_Load("ui/stages/defeated.png");
 
 	strcpy(gNames[0], "-");
 	strcpy(gNames[1], "-");
 	strcpy(gNames[2], "-");
 	strcpy(gNames[3], "-");
 
-	joueurSel = -1;
-	objetSel = -1;
-	guiltSel = -1;
+	joueurSel = -1; // Line of the grid selected
+	objetSel = -1;	// Column of the grid selected
+	guiltSel = -1;	// Line of the cards grid selected
 
 	b[0] = -1;
 	b[1] = -1;
 	b[2] = -1;
 
-	for (i = 0; i < 13; i++)
+	for (i = 0; i < 13; i++) // initialisation of the guiltGuess array
 		guiltGuess[i] = 0;
 
 	for (i = 0; i < 4; i++)
@@ -228,15 +234,28 @@ int main(int argc, char **argv)
 	texture_defeat = SDL_CreateTextureFromSurface(renderer, defeat);
 	texture_defeated = SDL_CreateTextureFromSurface(renderer, defeated);
 
-	TTF_Font *Sans = TTF_OpenFont("sans.ttf", 15); // change the font
+	TTF_Font *Sans = TTF_OpenFont("ui/fonts/montserrat.ttf", 15); // change the font
 	printf("Sans=%p\n", Sans);
 
 	/* Creation du thread serveur tcp. */
 	printf("Creation du thread serveur tcp !\n");
 
-	synchro = 0;
+	synchro = 0; // Synchro is set to 0 before making the thread !!
 
 	ret = pthread_create(&thread_serveur_tcp_id, NULL, fn_serveur_tcp, NULL); //  this is the part for network thread
+
+
+	// Load the background image
+	SDL_Surface *backgroundSurface = IMG_Load("ui/background.png");
+	if (!backgroundSurface)
+	{
+		printf("Failed to load background image: %s\n", IMG_GetError());
+		// Handle error
+		exit(1);
+	}
+
+	SDL_Texture *backgroundTexture = SDL_CreateTextureFromSurface(renderer, backgroundSurface);
+	SDL_FreeSurface(backgroundSurface); // Free the surface after creating the texture
 
 	while (!quit)
 	{
@@ -248,58 +267,57 @@ int main(int argc, char **argv)
 			case SDL_QUIT:
 				quit = 1;
 				break;
-			case SDL_MOUSEBUTTONDOWN:
-				SDL_GetMouseState(&mx, &my);
+			case SDL_MOUSEBUTTONDOWN:		 // If we choose with mouse button
+				SDL_GetMouseState(&mx, &my); // x,y coordinates of the mouse
 				// printf("mx=%d my=%d\n",mx,my);
-				if ((mx < 200) && (my < 50) && (connectEnabled == 1))
+				if ((mx < 200) && (my < 50) && (connectEnabled == 1)) // Button to establish connection
 				{
 					sprintf(sendBuffer, "C %s %d %s", gClientIpAddress, gClientPort, gName);
 
-					// CODE ADDED
+					// Code added to connect to the server
 					sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer);
 
 					connectEnabled = 0;
 				}
-				else if ((mx >= 0) && (mx < 200) && (my >= 90) && (my < 330))
+				else if ((mx >= 0) && (mx < 200) && (my >= 90) && (my < 330)) // If we click on a line of the grid (a player from the list)
 				{
-					joueurSel = (my - 90) / 60;
+					joueurSel = (my - 90) / 60; // finding which player is selected
 					guiltSel = -1;
 				}
-				else if ((mx >= 200) && (mx < 680) && (my >= 0) && (my < 90))
+				else if ((mx >= 200) && (mx < 680) && (my >= 0) && (my < 90)) // If we click on a column of the grid (an object)
 				{
-					objetSel = (mx - 200) / 60;
+					objetSel = (mx - 200) / 60; // finding which object is selected
 					guiltSel = -1;
 				}
-				else if ((mx >= 100) && (mx < 250) && (my >= 350) && (my < 740))
+				else if ((mx >= 100) && (mx < 250) && (my >= 350) && (my < 740)) // If we click on a line of the grid (a card) - We are making a guess
 				{
 					joueurSel = -1;
 					objetSel = -1;
-					guiltSel = (my - 350) / 30;
+					guiltSel = (my - 350) / 30; // Declaring the card selected as a guess
 				}
-				else if ((mx >= 250) && (mx < 300) && (my >= 350) && (my < 740))
+				else if ((mx >= 250) && (mx < 300) && (my >= 350) && (my < 740)) // DO NOT UNDERSTAND THIS PART
 				{
 					int ind = (my - 350) / 30;
 					guiltGuess[ind] = 1 - guiltGuess[ind];
 				}
-				else if ((mx >= 500) && (mx < 700) && (my >= 350) && (my < 450) && (goEnabled == 1))
+				else if ((mx >= 500) && (mx < 700) && (my >= 350) && (my < 450) && (goEnabled == 1)) // If we click on the go button
 				{
 					printf("go! joueur=%d objet=%d guilt=%d\n", joueurSel, objetSel, guiltSel);
 					if (guiltSel != -1)
 					{
-						sprintf(sendBuffer,"G %d %d",gId, guiltSel);
-						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);	//On envoie le message au serveur
-
+						sprintf(sendBuffer, "G %d %d", gId, guiltSel);
+						printf("\n ---------- Sending message to server: %s ----------\n", sendBuffer);
+						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer); // On envoie le message au serveur
 					}
 					else if ((objetSel != -1) && (joueurSel == -1))
 					{
-						sprintf(sendBuffer,"O %d %d",gId, objetSel);
-						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);	//On envoie le message au serveur
+						sprintf(sendBuffer, "O %d %d", gId, objetSel);
+						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer); // On envoie le message au serveur
 					}
 					else if ((objetSel != -1) && (joueurSel != -1))
 					{
-						sprintf(sendBuffer,"S %d %d %d",gId, joueurSel,objetSel);
-						sendMessageToServer(gServerIpAddress,gServerPort,sendBuffer);	//On envoie le message au serveur
-
+						sprintf(sendBuffer, "S %d %d %d", gId, joueurSel, objetSel);
+						sendMessageToServer(gServerIpAddress, gServerPort, sendBuffer); // On envoie le message au serveur
 					}
 				}
 				else
@@ -315,7 +333,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if (synchro == 1)
+		if (synchro == 1) // IF the thread serveur (client) has received a message
 		{
 			printf("consomme |%s|\n", gbuffer);
 			switch (gbuffer[0])
@@ -393,29 +411,33 @@ int main(int argc, char **argv)
 			synchro = 0;
 		}
 
-		SDL_Rect dstrect_grille = {512 - 250, 10, 500, 350};
-		SDL_Rect dstrect_image = {0, 0, 500, 330};
-		SDL_Rect dstrect_image1 = {0, 340, 250, 330 / 2};
+		// SDL_Rect dstrect_grille = {512 - 250, 10, 500, 350};
+		// SDL_Rect dstrect_image = {0, 0, 500, 330};
+		// SDL_Rect dstrect_image1 = {0, 340, 250, 330 / 2};
 
-		SDL_SetRenderDrawColor(renderer, 255, 230, 230, 230);
-		SDL_Rect rect = {0, 0, 1024, 768};
-		SDL_RenderFillRect(renderer, &rect);
+		// SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		// SDL_Rect rect = {0, 0, 1024, 768};
+		// SDL_RenderFillRect(renderer, &rect);
 
-		if (joueurSel != -1)
+		// Render the background texture
+		SDL_Rect backgroundRect = {0, 0, 1024, 768};
+		SDL_RenderCopy(renderer, backgroundTexture, NULL, &backgroundRect);
+
+		if (joueurSel != -1) // if selcted a line of the grid
 		{
 			SDL_SetRenderDrawColor(renderer, 255, 180, 180, 255);
 			SDL_Rect rect1 = {0, 90 + joueurSel * 60, 200, 60};
 			SDL_RenderFillRect(renderer, &rect1);
 		}
 
-		if (objetSel != -1)
+		if (objetSel != -1) // if selected a column of the grid
 		{
 			SDL_SetRenderDrawColor(renderer, 180, 255, 180, 255);
 			SDL_Rect rect1 = {200 + objetSel * 60, 0, 60, 90};
 			SDL_RenderFillRect(renderer, &rect1);
 		}
 
-		if (guiltSel != -1)
+		if (guiltSel != -1) // if selected a line of the grid (a card)
 		{
 			SDL_SetRenderDrawColor(renderer, 180, 180, 255, 255);
 			SDL_Rect rect1 = {100, 350 + guiltSel * 30, 150, 30};

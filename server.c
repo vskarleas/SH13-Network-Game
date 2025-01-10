@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 
 #include <stdbool.h> // CODE ADDED
+#include <time.h>	 // CODE ADDED
 
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -189,7 +190,7 @@ int findClientByName(char *name)
 
 void sendMessageToClient(char *clientip, int clientport, char *mess)
 {
-	int sockfd, portno, n;
+	int sockfd;
 	struct sockaddr_in serv_addr;
 	struct hostent *server;
 	char buffer[256];
@@ -215,7 +216,7 @@ void sendMessageToClient(char *clientip, int clientport, char *mess)
 	}
 
 	sprintf(buffer, "%s\n", mess);
-	n = write(sockfd, buffer, strlen(buffer));
+	write(sockfd, buffer, strlen(buffer));
 
 	close(sockfd);
 }
@@ -273,6 +274,9 @@ int joueursuivant(int joueurCourant, int *liste_joueurs_elimines)
 
 int main(int argc, char *argv[])
 {
+	// CODE ADDED - Allows the cards to be get suffled
+	srand(time(NULL)); // Seed the random number generator with current time
+
 	int sockfd, newsockfd, portno;
 	socklen_t clilen;
 	char buffer[256];
