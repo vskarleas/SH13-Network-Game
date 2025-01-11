@@ -121,3 +121,4 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V1.2.3: sh13.c était complété
 * V2.0.1: server.c était complété [added server]
 * V3.0.1: Reconstruction du répertoire, changement de la police, nettoyage, création du makefile, premier version du compte rendu, changement du background vers une image.
+* V3.1.0: Mise a jour du source code
