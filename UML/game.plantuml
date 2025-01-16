@@ -3,11 +3,12 @@ participant "Client 1" as C1
 participant "Client 2" as C2
 participant "Client 3" as C3
 participant "Client 4" as C4
+participant "All" as All
 participant "Server" as S
 
 note over S: Server maintains the shared matrix state
 
-C1 -> S: Send guess
+C1 -> S:  Send "G gID objetSel"
 alt Guess Valid
     S -> S: Update matrix
     S -> C1: Correct guess
@@ -17,6 +18,12 @@ alt Guess Valid
 else Guess Invalid
     S -> C1: Invalid guess
 end
+
+C1 -> S: Send "O obj"
+S -> All: broadcast(if matrix[obj] is NULL then 0 else V)
+
+C1 -> S: Send "S gID objetSel"
+S -> All: broadcast(matrix[gID][objetSel])
 
 C2 -> S: Send guess
 alt Guess Valid
@@ -29,6 +36,12 @@ else Guess Invalid
     S -> C2: Invalid guess
 end
 
+C2 -> S: Send "O obj"
+S -> All: broadcast(if matrix[obj] is NULL then 0 else V)
+
+C2 -> S: Send "S gID objetSel"
+S -> All: broadcast(matrix[gID][objetSel])
+
 C3 -> S: Send guess
 alt Guess Valid
     S -> S: Update matrix
@@ -40,6 +53,12 @@ else Guess Invalid
     S -> C3: Invalid guess
 end
 
+C3 -> S: Send "O obj"
+S -> All: broadcast(if matrix[obj] is NULL then 0 else V)
+
+C3 -> S: Send "S gID objetSel"
+S -> All: broadcast(matrix[gID][objetSel])
+
 C4 -> S: Send guess
 alt Guess Valid
     S -> S: Update matrix
@@ -50,5 +69,11 @@ alt Guess Valid
 else Guess Invalid
     S -> C4: Invalid guess
 end
+
+C4 -> S: Send "O obj"
+S -> All: broadcast(if matrix[obj] is NULL then 0 else V)
+
+C4 -> S: Send "S gID objetSel"
+S -> All: broadcast(matrix[gID][objetSel])
 
 @enduml

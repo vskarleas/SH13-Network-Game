@@ -67,6 +67,10 @@ Au lieu d'une question, un joueur peut annoncer quel personnage il soupçonnera 
 
 ![Architecture Réseau du jeu](UML/network.png)
 
+#### Nota benne
+
+> Nous sommes en protocol TCP, ca veut dire que chaque fois qu'une information est envoyé au reseau, le destinataire doit informer l'emmeteur pour la reception de message. Donc en niveau UML, il s'agit d'un acknowledge du cote serveur. C'est un comportement qui se repete dans tous les differents niveaux du programm comme la connection des clients, la reception des cartes, deviner la carte cache, ou meme posser des questions.
+
 ### La boucle du jeu
 
 Comme dans chaque jeu, on joue dans une boucle infinie jusque que quelqu'un gagne (ou si on abandonne parce qu'il y a plus d'intérêt :]). On peut observer le même comportement au cœur de notre program.
@@ -89,9 +93,39 @@ Chaque jouer à une tentative de deviner la carte cache comme explique aux règl
 
 ## Explications
 
+### Pourquoi nous utilisons de Threads ?
+
+Notre jeu s'agit d'un jeu resseau et donc dans ce cadre la le serveur n'aura pas la meme addresse IP avec les clients qui se connect pour jouer car sur le resseau internet chaque utilisateur est unique (adresse IP unique). Par contre, pour etre capable de tester les differents fonctionalites et messages envoye par les clienst et le serveur, nous travaillons sur la memem machine que les clients et le serveur tournet. Ainsi tout le monde aura la meme adresse IP. Donc, la seule manière de les différencier est donc d'utiliser des **ports spécifiques** attribués à chaque client.
+
+Ainsi l'interet d'utiliser des threads sont les suivantes:
+
+1. Les threads permettent au serveur de gérer plusieurs clients en parallèle. Chaque client est associé à un thread distinct, ce qui permet au serveur de continuer à écouter et accepter de nouvelles connexions pendant qu'il traite les messages des clients existants.
+2. Permettent de séparer les tâches réseau (comme écouter et recevoir des messages) des tâches de traitement ou d'affichage, le programme reste réactif et efficace. Par exemple, le serveur peut continuer à recevoir des données sans être bloqué par le traitement graphique ou autre.
+3. Chaque thread peut se concentrer sur une tâche spécifique. Par exemple :
+   * Un thread pour le serveur TCP (écoute et réception des messages réseau).
+   * Un thread pour l'affichage graphique des messages ou des mises à jour.
+   * Des threads supplémentaires pour gérer des calculs lourds ou d'autres fonctionnalités spécifiques du jeu.
+
 ### Pourquoi on utilise volatile pour la variable synchro sur sh13.c ?
 
-ddd
+On observe que la variable synchro est declare comme volatile, mais c'est quoi exactement l'interet ?
+
+On ne peut pas se fier à la valeur de `synchro` lors d'une lecture classique de la variable en question. L'objectif n'est pas de vérifier la valeur mise en cache par le processeur, mais de consulter directement la valeur réelle de `synchro`, qui est mise à jour dans deux threads distincts :
+
+* **Côté réseau** : le serveur TCP.
+* **Côté graphique** : le module d'affichage.
+
+Vous pouvez trouver plus d'informations sur cette variable synchro ci-dessous:
+
+### La variable *synchro*
+
+La variable `synchro` sert de mécanisme de communication et de coordination entre les deux threads distincts (réseau et graphique). Elle permet de signaler à l'un des threads (par exemple, le module graphique) que l'autre thread (le serveur TCP) a reçu un message.
+
+Cette synchronisation est essentielle dans les cas suivants :
+
+1. **Eviter des conflits d'accès** : Lorsque deux threads partagent une même donnée (ici, `synchro`), il est important de savoir si l'état de la variable est cohérent. En utilisant une variable volatile, on s’assure que les lectures/écritures accèdent directement à la mémoire principale, et non à une copie potentiellement obsolète stockée dans le cache du processeur.
+2. **Optimiser le traitement** : Avec `synchro`, le thread graphique n’a pas besoin de vérifier en permanence si un nouveau message est arrivé. Il peut réagir efficacement dès que `synchro` indique la réception d’un message.
+3. **Séparation des responsabilités** : Cette approche isole les fonctions de réception de messages (thread réseau) et de traitement/affichage des messages (thread graphique), améliorant ainsi la clarté et la maintenabilité du code.
 
 ### Quel est l'interet d'utiliser Threads pour connecter les clients ?
 
@@ -99,6 +133,14 @@ ccc
 
 ### Quest qu'il se passe sur le second parametre quand on fait l'appel system listen ?
 
+
+### Comment trouver le prochain jouer ?
+
+ccc
+
+### La logic de terminer le jeu 
+
+Expliquer le truc for all_users_eliminated
 
 ## Changements essentiels
 
@@ -120,7 +162,7 @@ Il y a toujours des améliorations qu'on pourrait apporter au projet. Voici nos 
 * [ ] Détecter si un utilisateur déconnecté par la session et informer les autres. Si il est reconnecte, il puissent continuer le jeu
 * [ ] Développer un codec de sauvegarde de l'état du jeu et donner la capacite aux jouers de sauvegarder leur jeu.
 * [ ] Possibilité de mettre à jour le username d'un client après la connexion pour offrir encore plus des possibilités de customisation
-* [ ] Pouvoir joueur en 3 joueurs (donc 4 cartes par joueur)
+* [X] Pouvoir joueur en 3 joueurs (donc 4 cartes par joueur)
 
 ## Versions
 
@@ -133,3 +175,4 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V3.0.1: Reconstruction du répertoire, changement de la police, nettoyage, création du makefile, premier version du compte rendu, changement du background vers une image.
 * V3.1.0: Mise a jour du source code
 * V4.0.0: Correction sur la realisation de regles (message S niveau serveur)
+* V4.0.1: Mise a jour d'UML
