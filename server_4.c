@@ -205,9 +205,11 @@ void sendMessageToClient(char *clientip, int clientport, char *mess)
 	}
 	bzero((char *)&serv_addr, sizeof(serv_addr));
 	serv_addr.sin_family = AF_INET;
-	bcopy((char *)server->h_addr,
-		  (char *)&serv_addr.sin_addr.s_addr,
-		  server->h_length);
+	// bcopy((char *)server->h_addr,
+	// 	  (char *)&serv_addr.sin_addr.s_addr,
+	// 	  server->h_length);
+
+	memcpy((char *)&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length); // updated bcopy version which was deprecated above
 	serv_addr.sin_port = htons(clientport);
 	if (connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
 	{
@@ -232,45 +234,75 @@ void broadcastMessage(char *mess)
 }
 
 // Pass to the next client that is not eliminated (!=1)
-int joueursuivant(int joueurCourant, int *liste_joueurs_elimines)
+int joueur_suivant(int joueurCourant, int *liste_joueurs_elimines)
 {
-	char buffer[256]; // for stocking messages
-	if (all_users_are_eliminated(liste_joueurs_elimines))
+	char buffer[256];
+	int hold_joueurCourant = joueurCourant;
+	
+	do
 	{
-		for (int i = 0; i < 4; i++)
+		joueurCourant = (joueurCourant + 1) % 4;
+
+		if (joueurCourant == hold_joueurCourant)
 		{
-			for (int j = 0; j < 8; j++)
+			for (int i = 0; i < 4; i++)
 			{
-				sprintf(buffer, "V %d %d %d", i, j, tableCartes[i][j]);
-				broadcastMessage(buffer);
+				for (int j = 0; j < 8; j++)
+				{
+					sprintf(buffer, "V %d %d %d", i, j, tableCartes[i][j]);
+					broadcastMessage(buffer);
+				}
+
+				return 4;
 			}
 		}
+	} while (liste_joueurs_elimines[joueurCourant] == 1);
 
-		joueurCourant = 4;
-	}
-	else
-	{
-		joueurCourant++;
-		if (joueurCourant > 3)
-		{
-			joueurCourant = 0;
-		}
-
-		while (liste_joueurs_elimines[joueurCourant] == 1)
-		{
-			joueurCourant++;
-			if (joueurCourant > 3)
-			{
-				joueurCourant = 0;
-			}
-		}
-
-		sprintf(buffer, "M %d", joueurCourant);
-		broadcastMessage(buffer);
-	}
-
+	sprintf(buffer, "M %d", joueurCourant);
+	broadcastMessage(buffer);
+	
 	return joueurCourant;
 }
+
+// int joueursuivant(int joueurCourant, int *liste_joueurs_elimines)
+// {
+// 	char buffer[256]; // for stocking messages
+// 	if (all_users_are_eliminated(liste_joueurs_elimines))
+// 	{
+// 		for (int i = 0; i < 4; i++)
+// 		{
+// 			for (int j = 0; j < 8; j++)
+// 			{
+// 				sprintf(buffer, "V %d %d %d", i, j, tableCartes[i][j]);
+// 				broadcastMessage(buffer);
+// 			}
+// 		}
+
+// 		joueurCourant = 4;
+// 	}
+// 	else
+// 	{
+// 		joueurCourant++;
+// 		if (joueurCourant > 3)
+// 		{
+// 			joueurCourant = 0;
+// 		}
+
+// 		while (liste_joueurs_elimines[joueurCourant] == 1)
+// 		{
+// 			joueurCourant++;
+// 			if (joueurCourant > 3)
+// 			{
+// 				joueurCourant = 0;
+// 			}
+// 		}
+
+// 		sprintf(buffer, "M %d", joueurCourant);
+// 		broadcastMessage(buffer);
+// 	}
+
+// 	return joueurCourant;
+// }
 
 int main(int argc, char *argv[])
 {
@@ -465,11 +497,22 @@ int main(int argc, char *argv[])
 					sprintf(reply, "Player P%d's guess was incorrect.\n", player_id + 1);
 					broadcastMessage(reply);
 
-					joueurCourant = joueursuivant(joueurCourant, liste_joueurs_elimines); // updating who is playing next
+					joueurCourant = joueur_suivant(joueurCourant, liste_joueurs_elimines); // updating who is playing next
 
 					if (all_users_are_eliminated(liste_joueurs_elimines)) // checking if all users are eliminated
 					{
 						sprintf(reply, "All the players are eliminated. You have lost !!");
+
+						// Completing the matrix for every player if all have lost
+						for (int i = 0; i < 4; i++)
+						{
+							for (int j = 0; j < 8; j++)
+							{
+								sprintf(buffer, "V %d %d %d", i, j, tableCartes[i][j]);
+								broadcastMessage(buffer);
+							}
+						}
+						// Sending rhe message that this player is eliminated
 						broadcastMessage(reply);
 						return (0);
 					}
@@ -512,7 +555,7 @@ int main(int argc, char *argv[])
 					}
 				}
 
-				joueurCourant = joueursuivant(joueurCourant, liste_joueurs_elimines); // updating who is playing next
+				joueurCourant = joueur_suivant(joueurCourant, liste_joueurs_elimines); // updating who is playing next
 			}
 			break;
 
@@ -523,9 +566,10 @@ int main(int argc, char *argv[])
 
 				// Le joueur askedId a le symbole askSymbole - On l'envoie au joueur qui a demandé (askId)
 				sprintf(reply, "V %d %d %d", askedId, askSymboleS, tableCartes[askedId][askSymboleS]);
-				sendMessageToClient(tcpClients[askingId].ipAddress, tcpClients[askingId].port, reply);
+				broadcastMessage(reply); // We need to send the infrmation to everybody since it's am=n "haut voix" game
+				// sendMessageToClient(tcpClients[askingId].ipAddress, tcpClients[askingId].port, reply);
 
-				joueurCourant = joueursuivant(joueurCourant, liste_joueurs_elimines); // updating who is playing next
+				joueurCourant = joueur_suivant(joueurCourant, liste_joueurs_elimines); // updating who is playing next
 			}
 			break;
 

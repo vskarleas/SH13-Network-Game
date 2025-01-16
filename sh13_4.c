@@ -503,7 +503,7 @@ int main(int argc, char **argv)
 				{
 					char mess[10];
 					if (tableCartes[i][j] == 100)
-						sprintf(mess, "*");
+						sprintf(mess, "V");
 					else
 						sprintf(mess, "%d", tableCartes[i][j]);
 					SDL_Surface *surfaceMessage = TTF_RenderText_Solid(Sans, mess, col1);

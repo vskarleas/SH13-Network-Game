@@ -40,7 +40,7 @@ INCLUDEOPTS = -I$(INCDIR) -I/opt/homebrew/include/SDL2
 COMPILOPTS = -g -Wall -ggdb3 $(INCLUDEOPTS)
 
 # liste des executables
-EXECUTABLES = sh13 server
+EXECUTABLES = sh13_4 server_4 server_3 sh13_3
 
 
 #############################################################################
@@ -55,14 +55,28 @@ all : $(EXECUTABLES)
 # regles explicites de compilation separee de modules
 # n'ayant pas de fichier .h ET/OU dependant d'autres modules
 
-sh13.o : sh13.c 
+sh13_4.o : sh13_4.c 
 	@echo ""
 	@echo "---------------------------------------------"
 	@echo "Compilation du module "$*
 	@echo "---------------------------------------------"
 	$(CC) -c $(COMPILOPTS) $<
 
-server.o : server.c
+sh13_3.o : sh13_3.c 
+	@echo ""
+	@echo "---------------------------------------------"
+	@echo "Compilation du module "$*
+	@echo "---------------------------------------------"
+	$(CC) -c $(COMPILOPTS) $<
+
+server_4.o : server_4.c
+	@echo ""
+	@echo "---------------------------------------------"
+	@echo "Compilation du module "$*
+	@echo "---------------------------------------------"
+	$(CC) -c $(COMPILOPTS) $<
+
+server_3.o : server_3.c
 	@echo ""
 	@echo "---------------------------------------------"
 	@echo "Compilation du module "$*
@@ -71,14 +85,28 @@ server.o : server.c
 		
 ########################################################
 # regles explicites de creation des executables
-sh13 : sh13.o
+sh13_3 : sh13_3.o
 	@echo ""
 	@echo "---------------------------------------------"
 	@echo "Creation de l'executable "$@
 	@echo "---------------------------------------------"
 	$(CC) $^ $(LDOPTS) -o $@
 
-server : server.o
+sh13_4 : sh13_4.o
+	@echo ""
+	@echo "---------------------------------------------"
+	@echo "Creation de l'executable "$@
+	@echo "---------------------------------------------"
+	$(CC) $^ $(LDOPTS) -o $@
+
+server_4 : server_4.o
+	@echo ""
+	@echo "---------------------------------------------"
+	@echo "Creation de l'executable "$@
+	@echo "---------------------------------------------"
+	$(CC) $^ $(LDOPTS) -o $@
+
+server_3 : server_3.o
 	@echo ""
 	@echo "---------------------------------------------"
 	@echo "Creation de l'executable "$@

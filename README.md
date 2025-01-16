@@ -89,7 +89,16 @@ Chaque jouer à une tentative de deviner la carte cache comme explique aux règl
 
 ## Explications
 
-ICI IL FAUT EXPLIQUER TOUT LE CODE
+### Pourquoi on utilise volatile pour la variable synchro sur sh13.c ?
+
+ddd
+
+### Quel est l'interet d'utiliser Threads pour connecter les clients ?
+
+ccc
+
+### Quest qu'il se passe sur le second parametre quand on fait l'appel system listen ?
+
 
 ## Changements essentiels
 
@@ -111,6 +120,7 @@ Il y a toujours des améliorations qu'on pourrait apporter au projet. Voici nos 
 * [ ] Détecter si un utilisateur déconnecté par la session et informer les autres. Si il est reconnecte, il puissent continuer le jeu
 * [ ] Développer un codec de sauvegarde de l'état du jeu et donner la capacite aux jouers de sauvegarder leur jeu.
 * [ ] Possibilité de mettre à jour le username d'un client après la connexion pour offrir encore plus des possibilités de customisation
+* [ ] Pouvoir joueur en 3 joueurs (donc 4 cartes par joueur)
 
 ## Versions
 
@@ -122,3 +132,4 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V2.0.1: server.c était complété [added server]
 * V3.0.1: Reconstruction du répertoire, changement de la police, nettoyage, création du makefile, premier version du compte rendu, changement du background vers une image.
 * V3.1.0: Mise a jour du source code
+* V4.0.0: Correction sur la realisation de regles (message S niveau serveur)
