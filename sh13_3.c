@@ -347,7 +347,7 @@ int main(int argc, char **argv)
 			// Message 'L' : le joueur recoit la liste des joueurs
 			case 'L':
 				sscanf(gbuffer, "L %s %s %s", gNames[0], gNames[1], gNames[2]);
-				printf("Updated Player List: %s, %s, %s, %s\n", gNames[0], gNames[1], gNames[2]);
+				printf("Updated Player List: %s, %s, %s\n", gNames[0], gNames[1], gNames[2]);
 				break;
 
 			// Message 'D' : le joueur recoit ses trois cartes

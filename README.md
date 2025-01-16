@@ -22,16 +22,40 @@ brew install sdl2
 
 ## Comment exécuter ?
 
+### Lancement manuel
+
 > Il faut noter que le program était développé sur un ordinateur Mac. Ça veut dire que toutes les instructions suivantes sont optimisées pour les ordinateurs Mac. Si vous utilisez un autre système d'exploitation, il faut vérifier ou sont installé les différentes librairies que le programme a besoin et qu'ils sont liste ci-dessus.
 
 Le jeu SH13 viens avec un Makefile qui normalise les deux instructions de base suivantes :
 
 ```bash
-gcc -o sh13 sh13.c -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lpthread
-gcc -o server server.c
+gcc -o sh13_4 sh13_4.c -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib -lSDL2 -lSDL2_image -lSDL2_ttf -lpthread
+gcc -o server_4 server_4.c
 ```
 
-Donc, il suffit sur une terminale de taper `make`. A noter que le compilateur utilisé est clang.
+Donc, il suffit sur une terminale de taper `make`. A noter que le compilateur utilisé est clang. Il faut suivre les instructions sur l'ecran pour lancer le server et les differents clients. Voici comment pourraient etre les differents commandes. Tous ces commandes d'executiosn sont lanché chaque une sur un terminal separe:
+
+```bash
+./server_4 32000
+./sh13_4 127.0.0.1 32000 127.0.0.1 32001 P1
+./sh13_4 127.0.0.1 32000 127.0.0.1 32002 P2
+./sh13_4 127.0.0.1 32000 127.0.0.1 32003 P3
+./sh13_4 127.0.0.1 32000 127.0.0.1 32004 P4
+```
+
+### Lancement automatique
+
+Il faut noter que nous avons inclus un module qui vous permet le lancement du jeu directement sans passer par les etapes manuels. Il suffit de tapper sur un terminal:
+
+```bash
+chmod 777 play_macos.sh
+```
+
+Apres nous pouvons lancher le script sans aucun soucis via la commande `bash play_macos.sh`. On nous laise etre guidez par les instructions inclus dans le module de lancement automatique.
+
+> Il faut noter que le jeu etait develope pour les machines Mac. Le coeur est ecrit en C et il peut etre execute dans n'importe quel machine qui pourrait compiler C, mais le script automatique fait appel aux appels systemes specifiques pour Mac.
+
+**Si vous etes sur Linux, il faut utiliser le script `bash play_linux.sh` et il faut verifier que sur Makefile le compilateur est GCC et pas CLANG.**
 
 ## Le jeu Sherlock 13
 
@@ -176,3 +200,4 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V3.1.0: Mise a jour du source code
 * V4.0.0: Correction sur la realisation de regles (message S niveau serveur)
 * V4.0.1: Mise a jour d'UML
+* V5.0.1: Added aytomatic installation script for macos and linux.

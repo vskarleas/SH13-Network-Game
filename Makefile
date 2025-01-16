@@ -22,7 +22,7 @@
 #############################################################################
 
 # compilateur C
-CC = clang
+CC = gcc
 
 # chemin d'acces aux librairies (interfaces)
 INCDIR = .
@@ -37,7 +37,7 @@ LDOPTS = -L$(LIBDIR) -L/opt/homebrew/lib -lm -lSDL2 -lSDL2_image -lSDL2_ttf -lpt
 INCLUDEOPTS = -I$(INCDIR) -I/opt/homebrew/include/SDL2
 
 # options de compilation
-COMPILOPTS = -g -Wall -ggdb3 $(INCLUDEOPTS)
+COMPILOPTS = -g -ggdb3 $(INCLUDEOPTS)
 
 # liste des executables
 EXECUTABLES = sh13_4 server_4 server_3 sh13_3
