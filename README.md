@@ -200,4 +200,4 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V3.1.0: Mise a jour du source code
 * V4.0.0: Correction sur la realisation de regles (message S niveau serveur)
 * V4.0.1: Mise a jour d'UML
-* V5.0.1: Added aytomatic installation script for macos and linux.
+* V5.0.1: Added aytomatic installation script for macos and linux
