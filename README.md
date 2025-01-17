@@ -6,7 +6,7 @@ Un jeu en réseau dont le but est de comprendre les bases du protocole TCP ainsi
 
 ## Dépendances
 
-C'est un programme qui est écrit en langage C. Il y a quelques dépendances particuliers pour que le program peut se compiler et tourner.
+C'est un programme qui est écrit en langage C. Il y a quelques dépendances particulières pour que le program peut se compiler et tourner.
 
 - SDL
 - SDL_image
@@ -33,7 +33,7 @@ gcc -o sh13_4 sh13_4.c -I/opt/homebrew/include/SDL2 -L/opt/homebrew/lib -lSDL2 -
 gcc -o server_4 server_4.c
 ```
 
-Donc, il suffit sur une terminale de taper `make`. A noter que le compilateur utilisé est clang. Il faut suivre les instructions sur l'ecran pour lancer le server et les differents clients. Voici comment pourraient etre les differents commandes. Tous ces commandes d'executiosn sont lanché chaque une sur un terminal separe:
+Donc, il suffit sur une terminale de taper `make`. A noter que le compilateur utilisé est clang. Il faut suivre les instructions sur l'écran pour lancer le server et les différents clients. Voici comment pourraient être les différentes commandes. Tous ces commandes d'exécution sont lancées chaque une sur un terminal séparé :
 
 ```bash
 ./server_4 32000
@@ -45,17 +45,17 @@ Donc, il suffit sur une terminale de taper `make`. A noter que le compilateur ut
 
 ### Lancement automatique
 
-Il faut noter que nous avons inclus un module qui vous permet le lancement du jeu directement sans passer par les etapes manuels. Il suffit de tapper sur un terminal:
+Il faut noter que nous avons inclus un module qui vous permet le lancement du jeu directement sans passer par les étapes manuelles. Il suffit de taper sur un terminal :
 
 ```bash
 chmod 777 play_macos.sh
 ```
 
-Apres nous pouvons lancher le script sans aucun soucis via la commande `bash play_macos.sh`. On nous laise etre guidez par les instructions inclus dans le module de lancement automatique.
+Après nous pouvons lancer le script sans aucun soucis via la commande `bash play_macos.sh`. On nous laisse être guidez par les instructions inclus dans le module de lancement automatique.
 
-> Il faut noter que le jeu etait develope pour les machines Mac. Le coeur est ecrit en C et il peut etre execute dans n'importe quel machine qui pourrait compiler C, mais le script automatique fait appel aux appels systemes specifiques pour Mac.
+> Il faut noter que le jeu était développé pour les machines Mac. Le cœur est écrit en C et il peut être exécuté dans n'importe quelle machine qui pourrait compiler C, mais le script automatique fait appel aux appels systèmes spécifiques pour Mac.
 
-**Si vous etes sur Linux, il faut utiliser le script `bash play_linux.sh` et il faut verifier que sur Makefile le compilateur est GCC et pas CLANG.**
+**Si vous êtes sur Linux, il faut utiliser le script `bash play_linux.sh` et il faut vérifier que sur Makefile le compilateur est GCC et pas CLANG. **
 
 ## Le jeu Sherlock 13
 
@@ -65,22 +65,32 @@ Le jeu se compose de 13 cartes de personnage, avec 2 à 3 caractéristiques. Cha
 
 ## Règles
 
-Les cartes sont mélangées et l'une est mise de côté. Cette carte représente le déguisement choisi par Arsène Lupin, les autres cartes sont réparties parmi les joueurs.
+Le serveur mélange les 13 cartes du jeu puis en distribué 12 équitablement entre tous les joueurs :
 
-Les joueurs comptent alors le total des caractéristiques qu'ils ont sur leurs cartes (par exemple, 2 détectives, 1 femme, 0 génie, etc.) et vont pouvoir poser une de ces deux questions pour recueillir de nouvelles preuves :
+* 4 cartes à 3 joueurs
+* 3 cartes à 4 joueurs
 
-* Soit, à tous les joueurs, "Qui a (au moins un) de (cette caractéristique) ?
-* Soit, pour un joueur spécifique, "Combien de (cette caractéristique) avez-vous ?
+Chaque joueur ne voit que les cartes qui lui ont été distribuées (affichage sur la droite de la fenêtre).
 
-En utilisant ces indices, les joueurs tentent de déterminer quel déguisement Arsène a choisi (c'est-à-dire quelle carte est manquante).
+Le serveur connait les cartes de chaque joueur, et crée une grille en comptabilisant le nombre de symbole que chaque joueur a. Ainsi il va envoyer à chaque joueur la ligne qui lui correspond et uniquement celle-ci.
 
-Au lieu d'une question, un joueur peut annoncer quel personnage il soupçonnera d'être Arsène déguisé. Ce joueur vérifie en secret la carte cachée. Si le soupçon était correct, ce joueur gagne le jeu, sinon le joueur est éliminé et les autres joueurs continuent.
+Le tour de jeu s'effectue dans l'ordre des connexions de chaque joueur. Chaque joueur va devoir collecter des informations pour identifier le criminel. A son tour, chaque joueur choisit une action :
+
+1. ACCUSATION : Choisissez le personnage que vous pensez être le criminel parmi la liste du tableau en bas à gauche puis cliquez sur le bouton "send".
+
+* Si vous avez raison et que le personnage désigné est le 13ème personnage alors la partie est finie et vous avez remporté la partie.
+* Si ce n'est pas le bon personnage, vous êtes éliminé et jusqu'à la fin de la partie, votre tour sera sauté, mais les autres joueurs peuvent toujours poser des questions sur vos cartes.
+
+1. ENQUÊTE 1 : Choisissez un symbole puis cliquez sur le bouton "send". Cela demande à tous les joueurs s’ils ont ou non ce symbole parmi leurs cartes. Le serveur remplit à tout le monde la colonne correspondant au symbole sélectionné de la grille, avec un V si le joueur possède au moins un de ce symbole et 0 s’il n'en possède pas. A noter que le serveur ne donne pas la réponse correspondant au joueur courant.
+2. ENQUÊTE 2 : Choisissez un joueur et un symbole spécifique puis cliquez sur le bouton "send". Le serveur répond à la place du joueur désigné, et donne à tous les autres joueurs le nombre exact de symboles qu'il possède.
+
+La partie se termine donc lorsqu'un joueur réussit une accusation OU lorsque tous les joueurs ont raté leur accusation et à ce moment, tout le monde a perdu la partie.
 
 ## Architecture
 
 ### Relation serveur/clients
 
-1. Il y a un server central qui connait toutes les informations. C'est lui qui va mélanger les cartes et les distribuer aux joueurs une fois que tout le monde est connecté sur la session du jeu. En plus, c'est lui qui est responsable de répondre aux questions que les joueurs posent aux autres joueurs. Par exemple, selon le type de la question, il faut donner les corrects informations et faire attentions de pas transmettre des informations que les joueurs n'ont pas demande ou ils sont hors des règles du jeu. Il s'agit du fichier server.c
+1. Il y a un serveur central qui connait toutes les informations. C'est lui qui va mélanger les cartes et les distribuer aux joueurs une fois que tout le monde est connecté sur la session du jeu. En plus, c'est lui qui est responsable de répondre aux questions que les joueurs posent aux autres joueurs. Par exemple, selon le type de la question, il faut donner les corrects informations et faire attentions de pas transmettre des informations que les joueurs n'ont pas demande ou ils sont hors des règles du jeu. Il s'agit du fichier server.c
 2. Il y a 4 clients qui vont joueurs. Tous les 4 clients partage le même source code qu'il s'agit du fichier sh13.c. Chaque personne qui essaye de se connecter au server central faut donner les informations suivantes
 
    * Son adresse IP
@@ -89,17 +99,17 @@ Au lieu d'une question, un joueur peut annoncer quel personnage il soupçonnera 
 
    Le serveur envoie un message de confirmation une fois qu'il a accepté le client. Si tous les 4 clients sont connectés alors la boucle principale du jeu peu commencer (poser des questions et faire de Guess pour la carte caché). Voici un schéma UML de l'architecture réseau du jeu Sherlock 13.
 
-![Architecture Réseau du jeu](UML/network.png)
+![](UML/network.png)
 
-#### Nota benne
+#### Nota bene
 
-> Nous sommes en protocol TCP, ca veut dire que chaque fois qu'une information est envoyé au reseau, le destinataire doit informer l'emmeteur pour la reception de message. Donc en niveau UML, il s'agit d'un acknowledge du cote serveur. C'est un comportement qui se repete dans tous les differents niveaux du programm comme la connection des clients, la reception des cartes, deviner la carte cache, ou meme posser des questions.
+> Nous sommes en protocole TCP, ça veut dire que chaque fois qu'une information est envoyé au réseau, le destinataire doit informer l'émetteur pour la réception de message. Donc en niveau UML, il s'agit d'un acknowledge du côté serveur. C'est un comportement qui se répète dans tous les différents niveaux du programme comme la connexion des clients, la réception des cartes, deviner la carte cache, ou même poser des questions.
 
 ### La boucle du jeu
 
 Comme dans chaque jeu, on joue dans une boucle infinie jusque que quelqu'un gagne (ou si on abandonne parce qu'il y a plus d'intérêt :]). On peut observer le même comportement au cœur de notre program.
 
-Une fois que tous les initialisations nécessaires sont fait comme ceux ci-dessous, on peut commencer le jeu :
+Une fois que toutes les initialisations nécessaires sont fait comme ceux ci-dessous, on peut commencer le jeu :
 
 * Connexion des tous les 4 clients
 * Mélange des cartes
@@ -113,15 +123,15 @@ Vous allez trouver à la ligne 260 du source code des clients (sh13.c) un while 
 
 Chaque jouer à une tentative de deviner la carte cache comme explique aux règles du jeu. Si jamais quelqu'un trouve cette carte, tous les autres perdent. En termes de réseau, on communique qui a gagné et qui a perdu jusque ce moment ou pas, ainsi que qui est le gagnant. Voici un schéma UML qui montre les messages envoyés par le serveur vers les clients dans les différents scenarios qu’un client x a deviné ou pas la bonne carte :
 
-![Messages serveur en cas de Guess par les clients](UML/game.png)
+![Messages serveur en cas de Guess par les clients](UML/game_v2.png)
 
 ## Explications
 
-### Pourquoi nous utilisons de Threads ?
+### Quel est l'intérêt d'utiliser Threads pour connecter les clients ?
 
-Notre jeu s'agit d'un jeu resseau et donc dans ce cadre la le serveur n'aura pas la meme addresse IP avec les clients qui se connect pour jouer car sur le resseau internet chaque utilisateur est unique (adresse IP unique). Par contre, pour etre capable de tester les differents fonctionalites et messages envoye par les clienst et le serveur, nous travaillons sur la memem machine que les clients et le serveur tournet. Ainsi tout le monde aura la meme adresse IP. Donc, la seule manière de les différencier est donc d'utiliser des **ports spécifiques** attribués à chaque client.
+Notre jeu s'agit d'un jeu réseau et donc dans ce cadre-là le serveur n'aura pas la même adresse IP avec les clients qui se connecte pour jouer car sur le réseau internet chaque utilisateur est unique (adresse IP unique). Cependant, pour être capable de tester les différents fonctionnalités et messages envoyé par les clients et le serveur, nous travaillons sur la même machine que les clients et le serveur tournent. Ainsi tout le monde aura la même adresse IP. Donc, la seule manière de les différencier est donc d'utiliser des ports spécifiques attribués à chaque client.
 
-Ainsi l'interet d'utiliser des threads sont les suivantes:
+Ainsi l'intérêt d'utiliser des threads sont les suivantes :
 
 1. Les threads permettent au serveur de gérer plusieurs clients en parallèle. Chaque client est associé à un thread distinct, ce qui permet au serveur de continuer à écouter et accepter de nouvelles connexions pendant qu'il traite les messages des clients existants.
 2. Permettent de séparer les tâches réseau (comme écouter et recevoir des messages) des tâches de traitement ou d'affichage, le programme reste réactif et efficace. Par exemple, le serveur peut continuer à recevoir des données sans être bloqué par le traitement graphique ou autre.
@@ -132,14 +142,14 @@ Ainsi l'interet d'utiliser des threads sont les suivantes:
 
 ### Pourquoi on utilise volatile pour la variable synchro sur sh13.c ?
 
-On observe que la variable synchro est declare comme volatile, mais c'est quoi exactement l'interet ?
+On observe que la variable synchro est déclaré comme volatile, mais c'est quoi exactement l'intérêt ?
 
 On ne peut pas se fier à la valeur de `synchro` lors d'une lecture classique de la variable en question. L'objectif n'est pas de vérifier la valeur mise en cache par le processeur, mais de consulter directement la valeur réelle de `synchro`, qui est mise à jour dans deux threads distincts :
 
 * **Côté réseau** : le serveur TCP.
 * **Côté graphique** : le module d'affichage.
 
-Vous pouvez trouver plus d'informations sur cette variable synchro ci-dessous:
+Vous pouvez trouver plus d'informations sur cette variable synchro ci-dessous :
 
 ### La variable *synchro*
 
@@ -147,28 +157,62 @@ La variable `synchro` sert de mécanisme de communication et de coordination ent
 
 Cette synchronisation est essentielle dans les cas suivants :
 
-1. **Eviter des conflits d'accès** : Lorsque deux threads partagent une même donnée (ici, `synchro`), il est important de savoir si l'état de la variable est cohérent. En utilisant une variable volatile, on s’assure que les lectures/écritures accèdent directement à la mémoire principale, et non à une copie potentiellement obsolète stockée dans le cache du processeur.
+1. **Éviter des conflits d'accès** : Lorsque deux threads partagent une même donnée (ici, `synchro`), il est important de savoir si l'état de la variable est cohérent. En utilisant une variable volatile, on s’assure que les lectures/écritures accèdent directement à la mémoire principale, et non à une copie potentiellement obsolète stockée dans le cache du processeur.
 2. **Optimiser le traitement** : Avec `synchro`, le thread graphique n’a pas besoin de vérifier en permanence si un nouveau message est arrivé. Il peut réagir efficacement dès que `synchro` indique la réception d’un message.
 3. **Séparation des responsabilités** : Cette approche isole les fonctions de réception de messages (thread réseau) et de traitement/affichage des messages (thread graphique), améliorant ainsi la clarté et la maintenabilité du code.
 
-### Quel est l'interet d'utiliser Threads pour connecter les clients ?
-
-ccc
-
-### Quest qu'il se passe sur le second parametre quand on fait l'appel system listen ?
-
+### Qu’est qu'il se passe sur le second paramètre quand on fait l'appel system listen ?
 
 ### Comment trouver le prochain jouer ?
 
-ccc
+Nous avons établi une fonction pour trouver le prochain jouer dans le cas où nous sommes dans un jeu de 3 ou 4 joueurs.
 
-### La logic de terminer le jeu 
+```c
 
-Expliquer le truc for all_users_eliminated
+int joueur_suivant(int joueurCourant, int *liste_joueurs_elimines)
+{
+	char buffer[256];
+	int hold_joueurCourant = joueurCourant;
+
+	do
+	{
+		joueurCourant = (joueurCourant + 1) % 3;
+
+		if (joueurCourant == hold_joueurCourant)
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				for (int j = 0; j < 8; j++)
+				{
+					sprintf(buffer, "V %d %d %d", i, j, tableCartes[i][j]);
+					broadcastMessage(buffer);
+				}
+
+				return 4;
+			}
+		}
+	} while (liste_joueurs_elimines[joueurCourant] == 1);
+
+	sprintf(buffer, "M %d", joueurCourant);
+	broadcastMessage(buffer);
+
+	return joueurCourant;
+}
+```
+
+Dans une boucle `do...while`, la fonction cherche le joueur suivant en incrémentant la valeur de `joueurCourant` de manière circulaire. Le modulo permet de revenir au premier joueur après le dernier (par exemple, après le joueur 2, elle repasse au joueur 0). Si le joueur trouvé n'est pas éliminé, la boucle s'arrête. Enfin, la fonction retourne le numéro du joueur suivant, permettant au programme principal de continuer avec ce joueur.
+
+Cette fonctionne est essentielle car il nous permet de trouver le prochain jouer si quelqu'un a perdu ou encore quand nous sommes dans la partie de poser des questions, il faut toujours trouver le prochain jouer.
+
+### La logique de terminer le jeu
+
+Dès le début du jeu, nous avons une liste laquelle va contenir l'état de joueurs. Si jamais quelqu’un est à 0 ça veut dire qu'il est vivant, sinon il était éliminé. Alors, si jamais tout le monde est à 1, donc on va fermer le serveur parce que tout le monde a perdu.
+
+Maintenant, on se pose la question comment on décide si quelqu’un est mort ou vivant.
 
 ## Changements essentiels
 
-Dans cette partie vous allez trouver quelques changements et modifications qui était apporte sur le code et qui étaient essentiels pour le bon fonctionnement du programme:
+Dans cette partie vous allez trouver quelques changements et modifications qui était apporté sur le code et qui étaient essentiels pour le bon fonctionnement du programme :
 
 1. `bcopy((char *)server->h_addr, (char *)&serv_addr.sin_addr.s_addr, server->h_length); `
 
@@ -179,9 +223,9 @@ Dans cette partie vous allez trouver quelques changements et modifications qui �
    Cependant, il est important de noter que l'utilisation de bcopy a été aboli. Voici comment on obtiens le même comportement avec la fonction memcpy: `memcpy((char *)&serv_addr.sin_addr.s_addr, server->h_addr_list[0], server->h_length);`
 2. Le server n'était pas capable de mélanger les cartes parce qu'il n'y avait un endroit ou le générateur aléatoire était initialise avec l'heur actuel de la machine. Donc la commande `srand(time(NULL));` était ajoute au fichier server.c a la ligne 278.
 
-## Ameliorations
+## Améliorations
 
-Il y a toujours des améliorations qu'on pourrait apporter au projet. Voici nos idées:
+Il y a toujours des améliorations qu'on pourrait apporter au projet. Voici nos idées :
 
 * [ ] Détecter si un utilisateur déconnecté par la session et informer les autres. Si il est reconnecte, il puissent continuer le jeu
 * [ ] Développer un codec de sauvegarde de l'état du jeu et donner la capacite aux jouers de sauvegarder leur jeu.
@@ -196,8 +240,9 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V1.2.1: Création du git de la structure de base [initial commit]
 * V1.2.3: sh13.c était complété
 * V2.0.1: server.c était complété [added server]
-* V3.0.1: Reconstruction du répertoire, changement de la police, nettoyage, création du makefile, premier version du compte rendu, changement du background vers une image.
+* V3.0.1: Reconstruction du répertoire, changement de la police, nettoyage, création du makefile, première version du compte rendu, changement du background vers une image.
 * V3.1.0: Mise a jour du source code
-* V4.0.0: Correction sur la realisation de regles (message S niveau serveur)
+* V4.0.0: Correction sur la réalisation de règles (message S niveau serveur)
 * V4.0.1: Mise a jour d'UML
 * V5.0.1: Added aytomatic installation script for macos and linux
+* V5.0.2: Added more details on README
