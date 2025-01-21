@@ -25,7 +25,7 @@ int objetSel;
 int guiltSel;
 int guiltGuess[13];
 int tableCartes[3][8];
-int b[3];
+int b[4];
 int goEnabled;
 int connectEnabled;
 int victoryEnabled;
@@ -210,6 +210,7 @@ int main(int argc, char **argv)
 	b[0] = -1;
 	b[1] = -1;
 	b[2] = -1;
+	b[3] = -1;
 
 	for (i = 0; i < 13; i++) // initialisation of the guiltGuess array
 		guiltGuess[i] = 0;
@@ -243,7 +244,6 @@ int main(int argc, char **argv)
 	synchro = 0; // Synchro is set to 0 before making the thread !!
 
 	ret = pthread_create(&thread_serveur_tcp_id, NULL, fn_serveur_tcp, NULL); //  this is the part for network thread
-
 
 	// Load the background image
 	SDL_Surface *backgroundSurface = IMG_Load("ui/background.png");
@@ -352,8 +352,8 @@ int main(int argc, char **argv)
 
 			// Message 'D' : le joueur recoit ses trois cartes
 			case 'D':
-				sscanf(gbuffer, "D %d %d %d", &b[0], &b[1], &b[2]);
-				printf("Received Cards: %d, %d, %d\n", b[0], b[1], b[2]);
+				sscanf(gbuffer, "D %d %d %d %d", &b[0], &b[1], &b[2], &b[3]);
+				printf("Received Cards: %d, %d, %d, %d\n", b[0], b[1], b[2], b[3]);
 				break;
 
 			// Message 'M' : le joueur recoit le n° du joueur courant
@@ -682,7 +682,7 @@ int main(int argc, char **argv)
 		SDL_RenderDrawLine(renderer, 0, 30 + 120, 680, 30 + 120);
 		SDL_RenderDrawLine(renderer, 0, 30 + 180, 680, 30 + 180);
 		SDL_RenderDrawLine(renderer, 0, 30 + 240, 680, 30 + 240);
-		//SDL_RenderDrawLine(renderer, 0, 30 + 300, 680, 30 + 300);
+		// SDL_RenderDrawLine(renderer, 0, 30 + 300, 680, 30 + 300);
 
 		SDL_RenderDrawLine(renderer, 200, 0, 200, 270);
 		SDL_RenderDrawLine(renderer, 260, 0, 260, 270);
@@ -715,6 +715,11 @@ int main(int argc, char **argv)
 		{
 			SDL_Rect dstrect = {750, 400, 1000 / 4, 660 / 4};
 			SDL_RenderCopy(renderer, texture_deck[b[2]], NULL, &dstrect);
+		}
+		if (b[3] != -1)
+		{
+			SDL_Rect dstrect = {750, 600, 1000 / 4, 660 / 4};
+			SDL_RenderCopy(renderer, texture_deck[b[3]], NULL, &dstrect);
 		}
 
 		// Le bouton go

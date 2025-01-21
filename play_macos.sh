@@ -129,6 +129,13 @@ else
 
   # Commands to execute after exiting the loop
   make clean
+  PORT=32000
+  PID=$(lsof -ti tcp:$PORT)
+  if [[ -n "$PID" ]]; then
+    echo -e "${YELLOW}Port $PORT is in use by process $PID. Releasing it...${NORMAL}"
+    kill -9 $PID
+    echo -e "${GREEN}Port $PORT is now available.${NORMAL}"
+  fi
   clear
   echo -e "${GREEN}SH13 Online Game has been successfully terminated\n"
   echo -e "${NORMAL}Thank you! | ${BLUE}Copyright © 2024 - $(date +%Y) ${NORMAL} Vasileios Filippos Skarleas, Manu Guerinel - All rights reserved"

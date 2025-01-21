@@ -160,7 +160,7 @@ void printDeck()
 	for (i = 0; i < 13; i++)
 		printf("%d %s\n", deck[i], nomcartes[deck[i]]);
 
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 3; i++)
 	{
 		for (j = 0; j < 8; j++)
 			printf("%2.2d ", tableCartes[i][j]);
@@ -512,7 +512,7 @@ int main(int argc, char *argv[])
 								broadcastMessage(buffer);
 							}
 						}
-						
+
 						// Sending the message that this player is eliminated
 						broadcastMessage(reply);
 						return (0);
