@@ -268,3 +268,4 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V5.0.1: Added automatic installation script for macos and linux
 * V5.0.2: Added more details on README
 * V5.2.2: 4th card is shown on the 3 players game and changes on the README
+* V5.3.0: Projet completé
