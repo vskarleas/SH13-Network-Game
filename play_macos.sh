@@ -33,6 +33,7 @@ else
 
   # Infinite loop with user options
   while true; do
+    clear
     echo -e "\n- 4p: Runs the game for 4 people."
     echo -e "- 3p: Runs the game for 3 people."
     echo -e "- exit: Exits the program."

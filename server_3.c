@@ -29,12 +29,12 @@ char *nomcartes[] =
 	 "Mrs. Hudson", "Mary Morstan", "James Moriarty"};
 int joueurCourant;
 
-int liste_joueurs_elimines[4]; // code added
+int liste_joueurs_elimines[3]; // code added
 
 void init_joueurs_elimines() // CODE ADDED
 {
 	int i;
-	for (i = 0; i < 4; i++)
+	for (i = 0; i < 3; i++)
 		liste_joueurs_elimines[i] = 0; // 0 means that a user is not eliminated otherwise he is eliminated (his guess was wrong)
 }
 
@@ -236,30 +236,22 @@ void broadcastMessage(char *mess)
 int joueur_suivant(int joueurCourant, int *liste_joueurs_elimines)
 {
 	char buffer[256];
-	int hold_joueurCourant = joueurCourant;
+	int old_joueurCourant = joueurCourant;
 
 	do
 	{
 		joueurCourant = (joueurCourant + 1) % 3;
-
-		if (joueurCourant == hold_joueurCourant)
+		if (joueurCourant == old_joueurCourant)
 		{
-			for (int i = 0; i < 3; i++)
-			{
-				for (int j = 0; j < 8; j++)
-				{
-					sprintf(buffer, "V %d %d %d", i, j, tableCartes[i][j]);
-					broadcastMessage(buffer);
-				}
-
-				return 4;
-			}
+			return old_joueurCourant; // signifie qu'on est retournée au joueur qui vient de jouer
 		}
-	} while (liste_joueurs_elimines[joueurCourant] == 1);
+
+	} while (liste_joueurs_elimines[joueurCourant] == 1); // continue de chercher un joueur non eliminé
 
 	sprintf(buffer, "M %d", joueurCourant);
 	broadcastMessage(buffer);
 
+	printf("sort\n");
 	return joueurCourant;
 }
 
@@ -457,7 +449,7 @@ int main(int argc, char *argv[])
 				{
 					// Generating infrmation message for the players
 					char buffer[256];
-					for (int i = 0; i < 4; i++)
+					for (int i = 0; i < 3; i++) // 3 players
 					{
 						for (int j = 0; j < 8; j++)
 						{
@@ -487,7 +479,7 @@ int main(int argc, char *argv[])
 				else // else this player loses
 				{
 					liste_joueurs_elimines[player_id] = 1; // setting up the user as eliminated
-					sprintf(reply, "P %d %d %d %d", liste_joueurs_elimines[0], liste_joueurs_elimines[1], liste_joueurs_elimines[2], liste_joueurs_elimines[3]);
+					sprintf(reply, "P %d %d %d", liste_joueurs_elimines[0], liste_joueurs_elimines[1], liste_joueurs_elimines[2]);
 					broadcastMessage(reply);
 
 					sprintf(reply, "M %d", 4);
@@ -497,9 +489,10 @@ int main(int argc, char *argv[])
 					sprintf(reply, "Player P%d's guess was incorrect.\n", player_id + 1);
 					broadcastMessage(reply);
 
+					int tempo_joueur = joueurCourant;
 					joueurCourant = joueur_suivant(joueurCourant, liste_joueurs_elimines); // updating who is playing next
 
-					if (all_users_are_eliminated(liste_joueurs_elimines)) // checking if all users are eliminated
+					if (joueurCourant == tempo_joueur) // checking if all users are eliminated and
 					{
 						sprintf(reply, "All the players are eliminated. You have lost !!");
 
