@@ -75,7 +75,7 @@ Après nous pouvons lancer le script sans aucun soucis via la commande `bash pla
 
 ### Si vous êtes sur Linux
 
-Vous pouvez utiliser directement la commande `bash cmd_3players.sh` ou `bash cmd_4players.sh` pour receivoir les executables `sh13` et `server` pour le jeu de 3 ou 4 joueurs respectivement. À noter que c'est possible que nous avons besoin de le rendre executable avec `chmod 777`.
+Vous pouvez utiliser directement la commande `bash cmd_3players.sh` ou `bash cmd_4players.sh` pour receivoir les executables `sh13` et `server` pour le jeu de 3 ou 4 joueurs respectivement. À noter qu'il est possible d'avoir besoin de le rendre executable avec `chmod 777`.
 
 ## Le jeu Sherlock 13
 
