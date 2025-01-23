@@ -69,9 +69,7 @@ chmod 777 play_macos.sh
 
 Après nous pouvons lancer le script sans aucun soucis via la commande `bash play_macos.sh`. On nous laisse être guidez par les instructions inclus dans le module de lancement automatique.
 
-> Il faut noter que le jeu était développé pour les machines Mac. Le cœur est écrit en C et il peut être exécuté dans n'importe quelle machine qui pourrait compiler C, mais le script automatique fait appel aux appels systèmes spécifiques pour Mac. En fait, le systéme utilise le Makefile qui depend aux librairies qui etaient installé en utilisant le Brew package manager.
-
-**Si vous êtes sur Linux, il faut utiliser le script `bash play_linux.sh` et il faut vérifier que sur Makefile le compilateur est GCC et pas CLANG.**
+> Il faut noter que le jeu était développé pour les machines Mac. Le cœur est écrit en C et il peut être exécuté dans n'importe quelle machine qui pourrait compiler C, mais le script automatique fait appel aux appels systèmes spécifiques pour Mac. En fait, le systéme utilise le Makefile qui depend aux librairies qui etaient installé en utilisant le Brew package manager.**Si vous êtes sur Linux, il faut utiliser le script `bash play_linux.sh` et il faut vérifier que sur Makefile le compilateur est GCC et pas CLANG.**
 
 ### Si vous êtes sur Linux
 
