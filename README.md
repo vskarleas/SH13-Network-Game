@@ -1,6 +1,13 @@
-# Sherlock 13 comme jeu réseau
+# SH13-Game : Sherlock 13 comme jeu réseau
 
-###### Manu Guerinel, Vasileios Filippos Skarleas
+## Authors
+
+* Manu Guerinel
+* Vasileios Filippos Skarleas
+
+---
+
+# Description
 
 Un jeu en réseau dont le but est de comprendre les bases du protocole TCP ainsi que la communication serveur-client. Il est écrit en C et le code source a été fourni par M. Pecheux, directeur à Polytech Sorbonne.
 
@@ -271,3 +278,10 @@ Le versioning est un élément clé en programmation, assurant la cohérence des
 * V5.0.2: Added more details on README
 * V5.2.2: 4th card is shown on the 3 players game and changes on the README
 * V5.3.0: Projet completé
+
+---
+
+SH13-Game © 2025 by Manu Guerinel, and Vasileios Filippos Skarleas is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International](https://creativecommons.org/licenses/by-nc/4.0/).
+
+This work also includes content that is not the property of the authors and is subject to copyright and other licenses from their respective owners.
+
